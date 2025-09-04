@@ -85,3 +85,8 @@ https://manipularium-seu-usuario.vercel.app
 ## 📊 Monitoramento
 - Logs disponíveis no dashboard do Vercel
 - Analytics e performance no painel
+
+## 🔐 Credenciais de Acesso
+- **Usuário:** `admin`
+- **Senha:** `manipularium`
+- **Nota:** Sistema sem cadastro - apenas login fixo com interface moderna

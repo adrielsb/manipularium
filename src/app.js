@@ -58,12 +58,9 @@ app.use('*', (req, res) => {
   });
 });
 
-// Para desenvolvimento local
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Manipularium rodando na porta ${PORT}`);
-    console.log(`📂 Acesse: http://localhost:${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`🚀 Manipularium rodando na porta ${PORT}`);
+  console.log(`📂 Acesse: http://localhost:${PORT}`);
+});
 
 module.exports = app;

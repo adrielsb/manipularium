@@ -18,14 +18,12 @@ Sistema de conferência bancária e de caixa desenvolvido em Node.js com Express
 
 ## Tecnologias Utilizadas
 
-- **Framework**: Next.js 15.5.2 + React 19.1.1
-- **Backend**: Node.js, Express.js (API Legacy)
+- **Backend**: Node.js, Express.js
 - **Banco de Dados**: Supabase (PostgreSQL)
 - **Upload**: Multer
 - **Processamento Excel**: XLSX
-- **Frontend**: React, Next.js, Tailwind CSS
+- **Frontend**: HTML5, JavaScript ES6, Tailwind CSS
 - **Segurança**: Helmet, CORS
-- **Deploy**: Vercel (otimizado)
 
 ## Instalação
 
@@ -52,22 +50,15 @@ cp .env.example .env
 
 5. Inicie o servidor:
 ```bash
-# Next.js (Recomendado)
-npm run dev          # Desenvolvimento (porta 3001)
-npm run build        # Build para produção
-npm start           # Produção Next.js
+# Desenvolvimento
+npm run dev
 
-# Express (Legacy)
-npm run express     # Express servidor (porta 3000)
-npm run express:dev # Express desenvolvimento
+# Produção
+npm start
 ```
 
 6. Acesse a aplicação:
 ```
-# Next.js (Interface Moderna)
-http://localhost:3001
-
-# Express (Interface Original)  
 http://localhost:3000
 ```
 
@@ -75,24 +66,20 @@ http://localhost:3000
 
 ```
 manipularium/
-├── pages/              # Next.js Pages (Interface Moderna)
-│   ├── api/           # API Routes do Next.js
-│   └── index.js       # Página principal Next.js
-├── src/               # Express Backend (Legacy)
-│   ├── controllers/   # Controladores da aplicação
-│   ├── routes/        # Definição das rotas Express  
-│   ├── models/        # Modelos e lógica de dados
-│   └── app.js         # Aplicação Express
+├── src/
+│   ├── controllers/     # Controladores da aplicação
+│   ├── routes/         # Definição das rotas
+│   ├── models/         # Modelos e lógica de dados
+│   └── app.js          # Aplicação principal
 ├── public/
-│   ├── images/        # Logo e imagens
-│   └── js/            # JavaScript do frontend
-├── views/             # Interface HTML original
-│   └── index.html     # Interface Express
-├── lib/               # Utilitários Next.js
-├── components/        # Componentes React (futuro)
-├── data/              # Dados persistentes
-├── database/          # Scripts SQL
-└── next.config.js     # Configuração Next.js
+│   ├── images/         # Logo e imagens
+│   ├── js/             # JavaScript do frontend
+│   └── uploads/        # Arquivos temporários de upload
+├── views/
+│   └── index.html      # Interface principal
+├── data/               # Dados persistentes (criado automaticamente)
+├── database/           # Scripts SQL
+└── package.json
 ```
 
 ## API Endpoints
@@ -119,7 +106,10 @@ manipularium/
 6. **Sistema de Backup**: Pontos de restauração automáticos e manuais
 
 ### Segurança
-- Sistema protegido por senha (1034)
+- **Sistema de Login**: Usuário `admin` / Senha `manipularium`
+- **Tela de Autenticação**: Interface moderna com validação
+- **Sessão Persistente**: Autenticação mantida durante navegação
+- **Logout Seguro**: Botão de saída limpa a sessão
 - Validação de tipos de arquivo
 - Sanitização de dados de entrada
 - Headers de segurança com Helmet
@@ -136,25 +126,15 @@ Isso iniciará o servidor com nodemon para recarregamento automático.
 
 ## Scripts Disponíveis
 
-### Next.js (Recomendado)
-- `npm run dev` - Inicia servidor de desenvolvimento Next.js (porta 3001)
-- `npm run build` - Faz build para produção
-- `npm start` - Inicia servidor Next.js em produção
-- `npm run lint` - Executa linter do Next.js
-
-### Express (Legacy)
-- `npm run express` - Inicia servidor Express (porta 3000)  
-- `npm run express:dev` - Express desenvolvimento com nodemon
-
-### Banco de Dados
+- `npm start` - Inicia o servidor em produção
+- `npm run dev` - Inicia o servidor em desenvolvimento com nodemon
+- `npm run build` - Executa verificações de integridade do projeto
 - `npm run db:create` - Verifica a estrutura do banco de dados
 - `npm run db:init` - Inicializa o banco de dados
-
-### Deploy e Backup
+- `npm run backup` - Criar backup do projeto
+- `npm run backup:list` - Listar backups disponíveis
 - `npm run deploy` - Deploy para Vercel produção
 - `npm run deploy:preview` - Deploy preview
-- `npm run backup` - Criar backup do projeto
-- `npm run backup:list` - Listar backups
 
 ## Autor
 

@@ -1,0 +1,27 @@
+# Arquivos e pastas ignorados no deploy do Vercel
+
+# Dados locais
+data/
+backups/
+build-info.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Ambiente local
+.env
+
+# Cache
+.cache/
+tmp/
+
+# Uploads temporários (serão recriados)
+public/uploads/
+
+# Build artifacts locais
+dist/
+build/
+
+# Scripts de desenvolvimento
+test-upload.js

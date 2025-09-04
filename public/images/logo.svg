@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <!-- Background -->
+  <rect width="400" height="200" fill="#17a2b8" rx="10"/>
+  
+  <!-- Farmácia icon - Mortar and pestle -->
+  <g transform="translate(30, 60)">
+    <!-- Pestle -->
+    <path d="M15 25 L25 15 Q27 13 29 15 Q31 17 29 19 L19 29" 
+          fill="white" stroke="white" stroke-width="2"/>
+    
+    <!-- Mortar bowl -->
+    <path d="M20 35 Q15 30 15 40 Q15 50 35 50 Q55 50 55 40 Q55 30 50 35 L20 35" 
+          fill="white" opacity="0.9"/>
+    
+    <!-- Mortar base -->
+    <ellipse cx="35" cy="50" rx="22" ry="8" fill="white"/>
+    
+    <!-- Pills/capsules -->
+    <circle cx="25" cy="40" r="2" fill="#17a2b8"/>
+    <ellipse cx="35" cy="38" rx="2" ry="4" fill="#17a2b8"/>
+    <circle cx="45" cy="42" r="2" fill="#17a2b8"/>
+  </g>
+  
+  <!-- Text -->
+  <g fill="white">
+    <!-- Main title -->
+    <text x="100" y="85" font-family="Arial, sans-serif" font-size="36" font-weight="bold">
+      Manipularium
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="100" y="110" font-family="Arial, sans-serif" font-size="16" opacity="0.9">
+      Farmácia Farmacêutica
+    </text>
+  </g>
+</svg>

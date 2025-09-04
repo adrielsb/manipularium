@@ -1,5 +1,10 @@
 # Manipularium - Sistema de Conferência
 
+<div align="center">
+  <img src="public/images/logo.svg" alt="Manipularium Logo" height="80">
+  <br><br>
+</div>
+
 Sistema de conferência bancária e de caixa desenvolvido em Node.js com Express.
 
 ## Características

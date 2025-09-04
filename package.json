@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "build": "node build.js",
+    "vercel-build": "echo 'Build completed'",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
     "db:init": "node src/scripts/initDatabase.js",
     "db:create": "node src/scripts/createTables.js",
     "backup": "node backup.js",

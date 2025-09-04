@@ -4,16 +4,17 @@ class SupabaseDataStorage {
   
   async initDatabase() {
     try {
-      // Criar tabelas se não existirem usando uma função SQL customizada
-      const { error } = await supabase.rpc('init_database_schema');
-      
-      if (error && !error.message.includes('function init_database_schema() does not exist')) {
-        console.error('Erro ao inicializar banco:', error);
-      }
+      // Apenas testar se consegue conectar com o Supabase
+      // As tabelas devem ser criadas manualmente no Dashboard do Supabase
+      const { data, error } = await supabase
+        .from('conference_days')
+        .select('count')
+        .limit(1);
       
       console.log('✅ Banco de dados inicializado');
     } catch (error) {
-      console.error('Erro na inicialização do banco:', error);
+      console.error('Erro ao inicializar banco:', error);
+      throw error; // Permitir que o HybridDataStorage use o fallback
     }
   }
 

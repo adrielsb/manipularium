@@ -58,9 +58,12 @@ app.use('*', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Manipularium rodando na porta ${PORT}`);
-  console.log(`📂 Acesse: http://localhost:${PORT}`);
-});
+// Only listen in non-serverless environments
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Manipularium rodando na porta ${PORT}`);
+    console.log(`📂 Acesse: http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;

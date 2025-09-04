@@ -1,36 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
-  <!-- Background -->
-  <rect width="400" height="200" fill="#17a2b8" rx="10"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="50" fill="#17a2b8"/>
   
-  <!-- Farmácia icon - Mortar and pestle -->
-  <g transform="translate(30, 60)">
+  <!-- Farmácia icon - Mortar and pestle (centered and scaled) -->
+  <g transform="translate(50, 50)">
     <!-- Pestle -->
-    <path d="M15 25 L25 15 Q27 13 29 15 Q31 17 29 19 L19 29" 
-          fill="white" stroke="white" stroke-width="2"/>
+    <path d="M-15 -10 L-5 -20 Q-3 -22 -1 -20 Q1 -18 -1 -16 L-11 -6" 
+          fill="white" stroke="white" stroke-width="1.5"/>
     
     <!-- Mortar bowl -->
-    <path d="M20 35 Q15 30 15 40 Q15 50 35 50 Q55 50 55 40 Q55 30 50 35 L20 35" 
-          fill="white" opacity="0.9"/>
+    <path d="M-10 0 Q-15 -5 -15 5 Q-15 15 5 15 Q25 15 25 5 Q25 -5 20 0 L-10 0" 
+          fill="white" opacity="0.95"/>
     
     <!-- Mortar base -->
-    <ellipse cx="35" cy="50" rx="22" ry="8" fill="white"/>
+    <ellipse cx="5" cy="15" rx="18" ry="6" fill="white"/>
     
-    <!-- Pills/capsules -->
-    <circle cx="25" cy="40" r="2" fill="#17a2b8"/>
-    <ellipse cx="35" cy="38" rx="2" ry="4" fill="#17a2b8"/>
-    <circle cx="45" cy="42" r="2" fill="#17a2b8"/>
-  </g>
-  
-  <!-- Text -->
-  <g fill="white">
-    <!-- Main title -->
-    <text x="100" y="85" font-family="Arial, sans-serif" font-size="36" font-weight="bold">
-      Manipularium
-    </text>
+    <!-- Pills/capsules (smaller) -->
+    <circle cx="-5" cy="5" r="1.5" fill="#17a2b8"/>
+    <ellipse cx="5" cy="3" rx="1.5" ry="3" fill="#17a2b8"/>
+    <circle cx="15" cy="7" r="1.5" fill="#17a2b8"/>
     
-    <!-- Subtitle -->
-    <text x="100" y="110" font-family="Arial, sans-serif" font-size="16" opacity="0.9">
-      Farmácia Farmacêutica
+    <!-- Letter M in center -->
+    <text x="0" y="-25" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">
+      M
     </text>
   </g>
 </svg>

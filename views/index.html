@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistemas de Conferência - Manipularium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --m-primary: #003366;
+            --m-accent: #00A99D;
+            --m-hover: #004080;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+        
+        * {
+            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            margin: 20px auto;
+            box-shadow: var(--shadow-2xl);
+        }
+        
+        /* Botões modernos */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--m-primary) 0%, var(--m-hover) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px 0 rgba(0, 50, 100, 0.35);
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px 0 rgba(0, 50, 100, 0.45);
+        }
+        
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--m-primary);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--m-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--m-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px 0 rgba(0, 50, 100, 0.25);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.35);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px 0 rgba(239, 68, 68, 0.45);
+        }
+        
+        /* Cards com glassmorphism */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card:hover {
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+            transform: translateY(-4px);
+        }
+        
+        /* Inputs modernos */
+        input[type="text"], input[type="password"], select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: var(--m-accent);
+            box-shadow: 0 0 0 4px rgba(0, 169, 157, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* File input moderno */
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, var(--m-primary) 0%, var(--m-hover) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            border: none;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        input[type="file"]::file-selector-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px 0 rgba(0, 50, 100, 0.35);
+        }
+        
+        /* Animações suaves para modais */
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .modal-content {
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Tabela moderna */
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        thead th {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        
+        tbody tr {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        tbody tr:hover {
+            background-color: rgba(0, 169, 157, 0.05);
+            transform: scale(1.01);
+        }
+        
+        /* Notificação popup aprimorada */
+        #notificationPopup {
+            transform: translate(-50%, -50%) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        #notificationPopup.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        /* Navegação aprimorada */
+        .nav-button {
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .nav-button:hover::before {
+            left: 100%;
+        }
+        
+        .nav-button.active {
+            background: linear-gradient(135deg, var(--m-primary) 0%, var(--m-hover) 100%);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(0, 50, 100, 0.35);
+        }
+        
+        .nav-button:not(.active):hover {
+            background: rgba(0, 51, 102, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Animação de shake aprimorada */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        
+        .animate-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--m-primary) 0%, var(--m-accent) 100%);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--m-hover);
+        }
+        
+        summary { list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-6">
+             <h1 class="text-4xl sm:text-5xl font-bold text-[--m-primary]">Manipularium</h1>
+             <p class="mt-2 text-gray-600" id="page-subtitle">Sistemas de Conferência</p>
+        </header>
+
+        <nav class="flex justify-center mb-8 bg-slate-200 p-2 rounded-lg shadow-inner">
+            <div class="flex space-x-2">
+                <button id="navBancaria" class="nav-button active">Conferência Bancária</button>
+                <button id="navCaixa" class="nav-button">Conferência de Caixa</button>
+            </div>
+        </nav>
+
+        <!-- Módulo de Conferência Bancária -->
+        <div id="sistema-bancaria">
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Coluna de Controlo -->
+                <div class="lg:col-span-1 card p-6 h-fit">
+                    
+                    <div class="space-y-8">
+                        <div>
+                            <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 1: Carregar Planilha</h2>
+                            <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" class="block w-full text-sm text-gray-500 file:rounded-full file:border-0 file:text-sm file:font-semibold">
+                        </div>
+
+                        <div id="historySection">
+                            <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 2: Selecionar Dia</h2>
+                            <select id="daySelector" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition mt-2" disabled>
+                                <option>Nenhum histórico encontrado</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 3: Conferir Valor</h2>
+                            <div class="flex items-center gap-2 mt-4">
+                                <input type="text" id="valorInput" placeholder="Selecione um dia..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition" disabled>
+                                <button id="checkButton" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>OK</button>
+                            </div>
+                             <button id="resetButton" class="w-full mt-4 btn-secondary disabled:opacity-50" disabled>Reiniciar dia atual</button>
+
+                            <div id="statusMessage" class="mt-4 text-center font-semibold"></div>
+
+                            <div id="notFoundSection" class="mt-8 hidden">
+                                <h3 class="text-lg font-bold text-red-600">Valores não encontrados neste dia:</h3>
+                                <ul id="notFoundList" class="mt-2 list-disc list-inside text-gray-700 bg-red-50 p-3 rounded-lg"></ul>
+                            </div>
+                        </div>
+
+                        <!-- Seção de Backup Discreta com Senha -->
+                        <div class="border-t border-slate-200 pt-6 text-center">
+                             <details id="backupDetails" class="text-sm text-gray-500">
+                                <summary id="backupSummary" class="cursor-pointer hover:text-gray-800 transition-colors">
+                                    <div class="inline-flex items-center font-medium">
+                                        <span>Opções Avançadas</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                                    </div>
+                                </summary>
+                                <div class="mt-4 flex flex-col gap-3 p-4 bg-gray-50 rounded-lg">
+                                     <p class="text-xs text-gray-600 mb-2">Crie ou restaure pontos de restauração salvos no servidor.</p>
+                                     <button id="createInternalBackupBtn" class="w-full btn-primary disabled:opacity-50" disabled style="background: linear-gradient(135deg, #00A99D 0%, #008B7D 100%);">Criar Ponto de Restauração</button>
+                                     <button id="restoreInternalBackupBtn" class="w-full btn-primary disabled:opacity-50" disabled>Restaurar Ponto Salvo...</button>
+                                     <button id="clearHistoryButton" class="w-full mt-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg py-2 transition-all font-semibold" disabled>Limpar todo o histórico...</button>
+                                </div>
+                             </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna da Tabela -->
+                <div class="lg:col-span-2 card overflow-hidden">
+                    <div id="table-container" class="overflow-x-auto">
+                        <div id="initialMessage" class="p-8 text-center text-gray-500">
+                            <p class="text-lg">Carregue uma planilha ou selecione um dia do histórico para começar.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Módulo de Conferência de Caixa (Placeholder) -->
+        <div id="sistema-caixa" class="hidden">
+             <main class="bg-white p-8 rounded-2xl shadow-lg text-center">
+                <h2 class="text-2xl font-bold text-[--m-primary]">Conferência de Caixa</h2>
+                <p class="mt-4 text-gray-600">Este módulo está em desenvolvimento.</p>
+                <p class="mt-2 text-gray-500">Em breve, você poderá gerenciar a conferência de caixa aqui.</p>
+            </main>
+        </div>
+
+        <footer class="text-center mt-12 text-sm text-gray-500">
+            <p>&copy; 2025 Criado por Gustavo Mazzon | Revisão Node.js - 04/09/2025</p>
+        </footer>
+    </div>
+    
+    <!-- Pop-up de Notificação -->
+    <div id="notificationPopup" class="fixed top-1/2 left-1/2 text-white text-2xl font-bold py-8 px-12 rounded-2xl shadow-2xl z-50 opacity-0 pointer-events-none flex items-center gap-4 backdrop-blur-sm"></div>
+    
+    <!-- Loader Global -->
+    <div id="globalLoader" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-[9999] hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-[--m-primary]"></div>
+            <p class="mt-4 text-lg font-semibold text-gray-700">Processando...</p>
+        </div>
+    </div>
+
+    <!-- Modais (pop-ups) -->
+    <div id="modals-container">
+        <!-- Modal de Confirmação "Não Encontrado" -->
+        <div id="notFoundModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-4">
+                <h3 class="text-xl font-bold text-gray-800">Valor não encontrado</h3>
+                <p class="mt-2 text-gray-600">O valor <strong id="notFoundValueText"></strong> não foi encontrado. Tem certeza que digitou certo?</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmNotFoundBtn" class="btn-danger">Sim, adicionar à lista</button>
+                    <button id="cancelNotFoundBtn" class="btn-secondary">Não, vou corrigir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Senha -->
+        <div id="passwordModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-2xl shadow-2xl text-center max-w-sm mx-4">
+                <h3 class="text-xl font-bold text-gray-800">Acesso Restrito</h3>
+                <p class="mt-2 text-gray-600">Por favor, insira a senha para continuar.</p>
+                <div class="mt-4">
+                    <input type="password" id="passwordInput" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition text-center">
+                    <p class="mt-2 text-xs text-gray-500 italic">Lembrete: Geografia</p>
+                </div>
+                <div id="passwordError" class="text-red-500 text-sm mt-2 h-4"></div>
+                <div class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="submitPasswordBtn" class="btn-primary">Entrar</button>
+                    <button id="cancelPasswordBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para Desambiguação de Múltiplos Valores -->
+        <div id="disambiguationModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md mx-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Múltiplos valores encontrados</h3>
+                <p class="mt-2 text-gray-600">Para confirmar o correto, digite parte do CPF/CNPJ abaixo ou decida depois.</p>
+                <div class="mt-4">
+                    <input type="text" id="disambiguationInput" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition text-center" placeholder="Digite parte do CPF/CNPJ...">
+                </div>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmDisambiguationBtn" class="btn-primary">Confirmar</button>
+                    <button id="decideLaterBtn" class="btn-secondary">Decidir Depois</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmação para Limpar Histórico -->
+        <div id="clearHistoryModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden">
+            <div class="modal-content bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md mx-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Apagar todo o histórico?</h3>
+                <p class="mt-2 text-gray-600">Tem a certeza? Esta ação é <strong class="text-red-600">permanente</strong> e não pode ser desfeita. Todos os dias pendentes e concluídos serão perdidos.</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmClearHistoryBtn" class="btn-danger">Sim, apagar tudo</button>
+                    <button id="cancelClearHistoryBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Restauração de Backup Interno -->
+        <div id="restoreModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg mx-4">
+                <h3 class="text-xl font-bold text-gray-800">Restaurar Ponto Salvo</h3>
+                <p class="mt-2 text-gray-600">Selecione um ponto para restaurar. O seu progresso atual não salvo será perdido.</p>
+                <div id="backupListContainer" class="mt-4 max-h-60 overflow-y-auto border rounded-lg p-2 text-left">
+                    <!-- A lista de backups será preenchida aqui -->
+                </div>
+                <p id="noBackupsMessage" class="text-gray-500 mt-4 hidden">Nenhum ponto de restauração encontrado.</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmRestoreBtn" class="bg-[--m-primary] text-white font-semibold py-2 px-6 rounded-lg hover:opacity-90 transition disabled:opacity-50" disabled>Restaurar Selecionado</button>
+                    <button id="cancelRestoreBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+         <!-- Modal de Confirmação para Restaurar Backup -->
+        <div id="restoreConfirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md mx-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Restaurar este ponto?</h3>
+                <p class="mt-2 text-gray-600">Tem a certeza? O seu progresso atual será <strong class="text-yellow-600">substituído</strong> por este ponto de restauração.</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmRestoreFinalBtn" class="bg-[--m-primary] text-white font-semibold py-2 px-6 rounded-lg hover:opacity-90">Sim, restaurar</button>
+                    <button id="cancelRestoreFinalBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmação para Reiniciar Dia -->
+        <div id="resetConfirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md mx-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                     <svg class="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Reiniciar conferência?</h3>
+                <p class="mt-2 text-gray-600">Tem a certeza? Todo o progresso de conferência <strong class="text-yellow-600">(linhas verdes e valores não encontrados)</strong> para este dia será perdido.</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmResetFinalBtn" class="bg-yellow-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-yellow-600 transition-colors">Sim, reiniciar</button>
+                    <button id="cancelResetFinalBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmação para Desfazer -->
+        <div id="undoConfirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md mx-4">
+                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mt-4">Desfazer esta conferência?</h3>
+                <p class="mt-2 text-gray-600">A linha selecionada voltará ao estado original, como "não conferida".</p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="confirmUndoFinalBtn" class="bg-[--m-primary] text-white font-semibold py-2 px-6 rounded-lg hover:opacity-90">Sim, desfazer</button>
+                    <button id="cancelUndoFinalBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

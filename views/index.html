@@ -448,14 +448,39 @@
                     <div class="space-y-8">
                         <div>
                             <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 1: Carregar Planilha</h2>
-                            <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" class="block w-full text-sm text-gray-500 file:rounded-full file:border-0 file:text-sm file:font-semibold">
+                            <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" class="block w-full text-sm text-gray-500 file:rounded-full file:border-0 file:text-sm file:font-semibold mb-3">
+                            <div class="flex gap-2">
+                                <button id="loadFileButton" class="btn-primary flex-1 disabled:opacity-50" disabled>Carregar</button>
+                                <button id="clearFileButton" class="btn-secondary flex-1 disabled:opacity-50" disabled>Limpar</button>
+                            </div>
                         </div>
 
                         <div id="historySection">
                             <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 2: Selecionar Dia</h2>
-                            <select id="daySelector" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition mt-2" disabled>
-                                <option>Nenhum histórico encontrado</option>
-                            </select>
+                            
+                            <!-- Opções de seleção -->
+                            <div class="mb-4">
+                                <div class="flex gap-2 mb-3">
+                                    <button id="autoSelectButton" class="btn-primary flex-1 disabled:opacity-50" disabled>Data Automática</button>
+                                    <button id="manualSelectButton" class="btn-secondary flex-1">Selecionar Manualmente</button>
+                                </div>
+                                
+                                <!-- Filtro por data (inicialmente oculto) -->
+                                <div id="dateFilterSection" class="hidden mb-3">
+                                    <label for="step2DateFilter" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Filtrar por data:
+                                    </label>
+                                    <input type="date" id="step2DateFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition">
+                                    <button id="step2FilterButton" class="btn-secondary w-full mt-2 disabled:opacity-50" disabled>Localizar e Selecionar</button>
+                                </div>
+                                
+                                <!-- Seletor manual de dias -->
+                                <div id="manualSelectSection">
+                                    <select id="daySelector" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition" disabled>
+                                        <option>Nenhum histórico encontrado</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
@@ -471,6 +496,47 @@
                             <div id="notFoundSection" class="mt-8 hidden">
                                 <h3 class="text-lg font-bold text-red-600">Valores não encontrados neste dia:</h3>
                                 <ul id="notFoundList" class="mt-2 list-disc list-inside text-gray-700 bg-red-50 p-3 rounded-lg"></ul>
+                            </div>
+
+                            <!-- Consulta de Valores Não Encontrados -->
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg border">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-semibold text-gray-700">Histórico de Valores Não Encontrados</h4>
+                                    <button id="toggleHistoricoButton" class="text-sm text-blue-600 hover:text-blue-800">
+                                        <span id="toggleText">Mostrar</span>
+                                        <svg class="inline w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path id="toggleIcon" stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <div id="historicoValores" class="hidden">
+                                    <div class="flex gap-2 mb-3">
+                                        <input type="text" id="searchValorInput" placeholder="Buscar valor..." class="flex-1 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent]">
+                                        <button id="exportHistoricoButton" class="btn-secondary text-sm px-3">Exportar</button>
+                                        <button id="clearHistoricoButton" class="btn-danger text-sm px-3">Limpar</button>
+                                    </div>
+                                    
+                                    <div id="historicoContainer" class="max-h-60 overflow-y-auto bg-white rounded border">
+                                        <div id="noHistoricoMessage" class="p-4 text-center text-gray-500 text-sm">
+                                            Nenhum valor não encontrado ainda
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Passo 4: Filtrar por Data</h2>
+                            <p class="text-sm text-gray-600 mb-3">Localize processamentos de um dia específico.</p>
+                            
+                            <!-- Filtro de Data -->
+                            <div class="mb-4">
+                                <label for="dateFilter" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Selecione a data:
+                                </label>
+                                <input type="date" id="dateFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition">
+                                <button id="filterByDateButton" class="btn-secondary w-full mt-2 disabled:opacity-50" disabled>Localizar Dia</button>
                             </div>
                         </div>
 
@@ -505,17 +571,61 @@
             </main>
         </div>
 
-        <!-- Módulo de Conferência de Caixa (Placeholder) -->
+        <!-- Módulo de Conferência de Caixa -->
         <div id="sistema-caixa" class="hidden">
-             <main class="bg-white p-8 rounded-2xl shadow-lg text-center">
-                <h2 class="text-2xl font-bold text-[--m-primary]">Conferência de Caixa</h2>
-                <p class="mt-4 text-gray-600">Este módulo está em desenvolvimento.</p>
-                <p class="mt-2 text-gray-500">Em breve, você poderá gerenciar a conferência de caixa aqui.</p>
+            <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Coluna de Controlo -->
+                <div class="lg:col-span-1 card p-6 h-fit">
+                    <div class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-bold mb-4 border-b border-slate-200 pb-2 text-[--m-primary]">Conferência de Caixa</h2>
+                            <p class="text-sm text-gray-600 mb-4">Valores transferidos da conferência bancária aparecem aqui automaticamente.</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-[--m-primary]">Selecionar Dia</h3>
+                            <select id="caixaDaySelector" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[--m-accent] transition">
+                                <option>Nenhum dia com valores conferidos</option>
+                            </select>
+                        </div>
+
+                        <div id="caixaControls" class="hidden">
+                            <h3 class="text-lg font-semibold mb-3 text-[--m-primary]">Ações</h3>
+                            <div class="space-y-3">
+                                <button id="finalizarCaixaButton" class="btn-primary w-full">Finalizar Conferência</button>
+                                <button id="exportarCaixaButton" class="btn-secondary w-full">Exportar para Arquivo</button>
+                            </div>
+                        </div>
+
+                        <div id="caixaStatus" class="text-center">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-blue-800">Status</h4>
+                                <p id="caixaStatusText" class="text-blue-600 text-sm mt-1">Selecione um dia para ver os valores transferidos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna da Tabela -->
+                <div class="lg:col-span-2 card overflow-hidden">
+                    <div id="caixa-table-container" class="overflow-x-auto">
+                        <div id="caixaInitialMessage" class="p-8 text-center text-gray-500">
+                            <div class="mb-4">
+                                <svg class="mx-auto h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Conferência de Caixa</h3>
+                            <p class="text-gray-500">Os valores conferidos na aba "Conferência Bancária" aparecerão aqui automaticamente.</p>
+                            <p class="text-sm text-gray-400 mt-2">Confira valores na aba anterior para começar.</p>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
 
         <footer class="text-center mt-12 text-sm text-gray-500">
-            <p>&copy; 2025 Criado por Gustavo Mazzon | Revisão Node.js - 04/09/2025</p>
+            <p>&copy; 2025 Criado por Manipularium - Fórmulas Farmacêuticas</p>
         </footer>
     </div>
     

@@ -99,6 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sistemaCaixa = document.getElementById('sistema-caixa');
     const pageSubtitle = document.getElementById('page-subtitle');
     
+    // Elementos da Conferência de Caixa
+    const caixaDaySelector = document.getElementById('caixaDaySelector');
+    const caixaControls = document.getElementById('caixaControls');
+    const caixaStatusText = document.getElementById('caixaStatusText');
+    const caixaTableContainer = document.getElementById('caixa-table-container');
+    const caixaInitialMessage = document.getElementById('caixaInitialMessage');
+    const finalizarCaixaButton = document.getElementById('finalizarCaixaButton');
+    const exportarCaixaButton = document.getElementById('exportarCaixaButton');
+    
     navBancaria.addEventListener('click', () => {
         sistemaBancaria.classList.remove('hidden');
         sistemaCaixa.classList.add('hidden');
@@ -113,10 +122,26 @@ document.addEventListener('DOMContentLoaded', () => {
         navBancaria.classList.remove('active');
         navCaixa.classList.add('active');
         pageSubtitle.textContent = 'Sistema de Conferência de Caixa';
+        
+        // Atualizar dados da caixa imediatamente
+        updateCaixaDaySelector();
+        
+        // Se há dados de caixa, selecionar o dia mais recente automaticamente
+        const pendingDays = Object.keys(appData.caixaData.pending).sort().reverse();
+        const completedDays = Object.keys(appData.caixaData.completed).sort().reverse();
+        const allCaixaDays = [...pendingDays, ...completedDays];
+        
+        if (allCaixaDays.length > 0) {
+            caixaDaySelector.value = allCaixaDays[0];
+        }
+        
+        renderCaixaTable();
     });
 
     // Elementos da Conferência Bancária
     const fileInput = document.getElementById('fileInput');
+    const loadFileButton = document.getElementById('loadFileButton');
+    const clearFileButton = document.getElementById('clearFileButton');
     const valorInput = document.getElementById('valorInput');
     const checkButton = document.getElementById('checkButton');
     const resetButton = document.getElementById('resetButton');
@@ -128,6 +153,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const notFoundSection = document.getElementById('notFoundSection');
     const notFoundList = document.getElementById('notFoundList');
     const notificationPopup = document.getElementById('notificationPopup');
+    
+    // Elementos do Passo 2: Opções de seleção
+    const autoSelectButton = document.getElementById('autoSelectButton');
+    const manualSelectButton = document.getElementById('manualSelectButton');
+    const dateFilterSection = document.getElementById('dateFilterSection');
+    const manualSelectSection = document.getElementById('manualSelectSection');
+    const step2DateFilter = document.getElementById('step2DateFilter');
+    const step2FilterButton = document.getElementById('step2FilterButton');
+    
+    // Elementos do Histórico de Valores Não Encontrados
+    const toggleHistoricoButton = document.getElementById('toggleHistoricoButton');
+    const toggleText = document.getElementById('toggleText');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const historicoValores = document.getElementById('historicoValores');
+    const searchValorInput = document.getElementById('searchValorInput');
+    const exportHistoricoButton = document.getElementById('exportHistoricoButton');
+    const clearHistoricoButton = document.getElementById('clearHistoricoButton');
+    const historicoContainer = document.getElementById('historicoContainer');
+    const noHistoricoMessage = document.getElementById('noHistoricoMessage');
+    
+    // Elementos do Passo 4: Filtrar por Data
+    const dateFilter = document.getElementById('dateFilter');
+    const filterByDateButton = document.getElementById('filterByDateButton');
     
     const notFoundModal = document.getElementById('notFoundModal');
     const notFoundValueText = document.getElementById('notFoundValueText');
@@ -173,6 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let appData = {
         historyData: { pending: {}, completed: {} },
+        caixaData: { pending: {}, completed: {} },
+        valoresNaoEncontrados: [], // Lista global de valores não encontrados
         backups: []
     };
     let currentDayKey = null;
@@ -197,6 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (result.success) {
                 appData = result.data;
+                // Garantir que estruturas existem (compatibilidade com dados antigos)
+                if (!appData.caixaData) {
+                    appData.caixaData = { pending: {}, completed: {} };
+                }
+                if (!appData.valoresNaoEncontrados) {
+                    appData.valoresNaoEncontrados = [];
+                }
             }
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
@@ -220,11 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStatus('Erro ao salvar dados', 'red');
             }
             
-            checkDataPresence();
         } catch (error) {
             console.error('Erro ao salvar dados:', error);
             showStatus('Erro de conexão', 'red');
         }
+        
+        checkDataPresence();
     }
 
     async function uploadFile(file) {
@@ -277,9 +335,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkDataPresence() {
         const hasData = Object.keys(appData.historyData.pending).length > 0 || 
                        Object.keys(appData.historyData.completed).length > 0;
+        const hasCurrentDayData = currentDayKey && (appData.historyData.pending[currentDayKey] || appData.historyData.completed[currentDayKey]);
+        
         createInternalBackupBtn.disabled = !hasData;
         restoreInternalBackupBtn.disabled = appData.backups.length === 0;
         clearHistoryButton.disabled = !hasData;
+        clearFileButton.disabled = !hasCurrentDayData;
+        
+        // Passo 2: Controles de seleção de dia
+        const hasAnyData = Object.keys(appData.historyData.pending).length > 0 || Object.keys(appData.historyData.completed).length > 0;
+        autoSelectButton.disabled = !hasAnyData;
+        step2FilterButton.disabled = !step2DateFilter.value;
+        
+        // Passo 4: Controles de filtro por data
+        if (filterByDateButton) filterByDateButton.disabled = !dateFilter.value;
     }
 
     function showNotificationPopup(message, type) {
@@ -303,8 +372,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners
-    fileInput.addEventListener('change', async (event) => {
+    fileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
+        loadFileButton.disabled = !file;
+    });
+
+    loadFileButton.addEventListener('click', async () => {
+        const file = fileInput.files[0];
         if (!file) return;
 
         try {
@@ -360,6 +434,153 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus(error.message, 'red');
         }
     });
+
+    clearFileButton.addEventListener('click', async () => {
+        if (!currentDayKey) return;
+        
+        // Remover dados do dia atual
+        if (appData.historyData.pending[currentDayKey]) {
+            delete appData.historyData.pending[currentDayKey];
+        }
+        if (appData.historyData.completed[currentDayKey]) {
+            delete appData.historyData.completed[currentDayKey];
+        }
+        
+        // Limpar input de arquivo
+        fileInput.value = '';
+        loadFileButton.disabled = true;
+        
+        // Resetar estado
+        currentDayKey = null;
+        await saveDataToServer();
+        updateDaySelector();
+        resetConferenceUI();
+        renderTable();
+        deactivateControls(false);
+        
+        showStatus('Dados do dia removidos com sucesso.', 'green');
+    });
+
+    // Event listeners do Passo 2: Opções de seleção
+    autoSelectButton.addEventListener('click', () => {
+        // Selecionar automaticamente o dia mais recente
+        const allDays = [...Object.keys(appData.historyData.pending), ...Object.keys(appData.historyData.completed)]
+            .sort().reverse();
+        
+        if (allDays.length > 0) {
+            currentDayKey = allDays[0];
+            daySelector.value = currentDayKey;
+            resetConferenceUI();
+            renderTable();
+            
+            if (appData.historyData.pending[currentDayKey]) {
+                activateControls();
+            } else {
+                deactivateControls(true);
+            }
+            
+            checkDataPresence();
+            showStatus(`Dia mais recente selecionado: ${currentDayKey}`, 'green');
+        }
+    });
+    
+    manualSelectButton.addEventListener('click', () => {
+        // Alternar entre modo manual e filtro por data
+        const isFilterMode = !dateFilterSection.classList.contains('hidden');
+        
+        if (isFilterMode) {
+            // Mudar para seleção manual
+            dateFilterSection.classList.add('hidden');
+            manualSelectSection.classList.remove('hidden');
+            manualSelectButton.textContent = 'Filtrar por Data';
+            manualSelectButton.classList.remove('btn-primary');
+            manualSelectButton.classList.add('btn-secondary');
+        } else {
+            // Mudar para filtro por data
+            dateFilterSection.classList.remove('hidden');
+            manualSelectSection.classList.add('hidden');
+            manualSelectButton.textContent = 'Selecionar Manualmente';
+            manualSelectButton.classList.remove('btn-secondary');
+            manualSelectButton.classList.add('btn-primary');
+        }
+    });
+    
+    step2DateFilter.addEventListener('change', () => {
+        step2FilterButton.disabled = !step2DateFilter.value;
+    });
+    
+    step2FilterButton.addEventListener('click', () => {
+        const selectedDate = step2DateFilter.value;
+        if (!selectedDate) return;
+        
+        // Converter data selecionada para o formato usado no sistema (dd/mm/yyyy)
+        const [year, month, day] = selectedDate.split('-');
+        const formattedDate = `${day}/${month}/${year}`;
+        
+        // Verificar se existe um dia com essa data
+        const allDays = [...Object.keys(appData.historyData.pending), ...Object.keys(appData.historyData.completed)];
+        const foundDay = allDays.find(dayKey => dayKey === formattedDate);
+        
+        if (foundDay) {
+            // Selecionar o dia encontrado
+            currentDayKey = foundDay;
+            daySelector.value = foundDay;
+            resetConferenceUI();
+            renderTable();
+            
+            if (appData.historyData.pending[foundDay]) {
+                activateControls();
+            } else {
+                deactivateControls(true);
+            }
+            
+            checkDataPresence();
+            showStatus(`Dia ${formattedDate} localizado e selecionado!`, 'green');
+        } else {
+            showStatus(`Nenhum processamento encontrado para ${formattedDate}`, 'red');
+        }
+    });
+    
+    // Event listeners do Passo 4: Filtrar por Data
+    if (dateFilter && filterByDateButton) {
+        dateFilter.addEventListener('change', () => {
+            filterByDateButton.disabled = !dateFilter.value;
+        });
+    }
+
+    if (filterByDateButton) {
+        filterByDateButton.addEventListener('click', () => {
+            const selectedDate = dateFilter.value;
+            if (!selectedDate) return;
+            
+            // Converter data selecionada para o formato usado no sistema (dd/mm/yyyy)
+            const [year, month, day] = selectedDate.split('-');
+            const formattedDate = `${day}/${month}/${year}`;
+            
+            // Verificar se existe um dia com essa data
+            const allDays = [...Object.keys(appData.historyData.pending), ...Object.keys(appData.historyData.completed)];
+            const foundDay = allDays.find(dayKey => dayKey === formattedDate);
+            
+            if (foundDay) {
+                // Selecionar o dia encontrado
+                currentDayKey = foundDay;
+                daySelector.value = foundDay;
+                resetConferenceUI();
+                renderTable();
+                
+                if (appData.historyData.pending[foundDay]) {
+                    activateControls();
+                } else {
+                    deactivateControls(true);
+                }
+                
+                checkDataPresence();
+                showStatus(`Dia ${formattedDate} localizado e selecionado!`, 'green');
+            } else {
+                showStatus(`Nenhum processamento encontrado para ${formattedDate}`, 'red');
+            }
+        });
+    }
 
     function getCurrentDayData() {
         return currentDayKey ? 
@@ -518,8 +739,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const matches = dayData.transactions.filter(t => t.valor === value && t.status === 'unmatched');
         
         if (matches.length === 1) {
-            matches[0].status = 'matched';
-            showNotificationPopup('Valor Conferido!', 'success');
+            const matchedTransaction = matches[0];
+            matchedTransaction.status = 'matched';
+            
+            // Transferir para conferência de caixa IMEDIATAMENTE
+            await transferToCaixa(matchedTransaction, currentDayKey);
+            
+            // Salvar dados imediatamente após transferência
+            await saveDataToServer();
+            
+            // Atualizar interface da caixa se estiver na aba ativa
+            if (!sistemaCaixa.classList.contains('hidden')) {
+                updateCaixaDaySelector();
+                renderCaixaTable();
+            }
+            
+            console.log('✅ FLUXO: Valor conferido e transferido para caixa!');
+            showNotificationPopup('Valor Conferido e Transferido para Caixa!', 'success');
             await checkForCompletion(currentDayKey);
         } else if (matches.length > 1) {
             matches.forEach(m => m.status = 'needs-review');
@@ -560,15 +796,38 @@ document.addEventListener('DOMContentLoaded', () => {
             valorInput.disabled = true;
         }
         
-        await saveDataToServer();
         renderTable();
+        await saveDataToServer();
         valorInput.value = '';
     }
 
     confirmNotFoundBtn.addEventListener('click', async () => {
         const dayData = getCurrentDayData();
         if (dayData && valueToConfirmNotFound !== null) {
+            // Adicionar à lista do dia
             dayData.notFound.push(valueToConfirmNotFound);
+            
+            // Adicionar à lista global de valores não encontrados
+            const valorNaoEncontrado = {
+                valor: valueToConfirmNotFound,
+                dia: currentDayKey,
+                dataHora: new Date().toISOString(),
+                tentativas: 1
+            };
+            
+            // Verificar se já existe na lista global
+            const existeGlobal = appData.valoresNaoEncontrados.find(v => 
+                v.valor === valueToConfirmNotFound && v.dia === currentDayKey
+            );
+            
+            if (existeGlobal) {
+                existeGlobal.tentativas++;
+                existeGlobal.dataHora = new Date().toISOString();
+            } else {
+                appData.valoresNaoEncontrados.push(valorNaoEncontrado);
+            }
+            
+            console.log('💾 Valor não encontrado salvo para consulta:', valorNaoEncontrado);
         }
         await saveDataToServer();
         renderNotFoundList();
@@ -585,6 +844,43 @@ document.addEventListener('DOMContentLoaded', () => {
         valueToConfirmNotFound = null;
     }
 
+    // Função para transferir transação conferida para caixa
+    async function transferToCaixa(transaction, dayKey) {
+        console.log('Transferindo para caixa:', transaction, dayKey);
+        
+        // Garantir que caixaData existe
+        if (!appData.caixaData) {
+            appData.caixaData = { pending: {}, completed: {} };
+        }
+        
+        // Criar entrada na conferência de caixa se não existir
+        if (!appData.caixaData.pending[dayKey]) {
+            appData.caixaData.pending[dayKey] = {
+                transactions: [],
+                totalConferido: 0
+            };
+        }
+        
+        // Verificar se já não foi transferida (evitar duplicação)
+        const jaExiste = appData.caixaData.pending[dayKey].transactions.find(t => t.id === transaction.id);
+        if (jaExiste) {
+            console.log('Transação já transferida:', transaction.id);
+            return;
+        }
+        
+        // Adicionar transação à conferência de caixa
+        const caixaTransaction = {
+            ...transaction,
+            transferredAt: new Date().toISOString(),
+            originalStatus: 'matched'
+        };
+        
+        appData.caixaData.pending[dayKey].transactions.push(caixaTransaction);
+        appData.caixaData.pending[dayKey].totalConferido += transaction.valor;
+        
+        console.log('Transferida com sucesso! Total na caixa:', appData.caixaData.pending[dayKey].transactions.length);
+    }
+
     async function handleDisambiguation() {
         const cpfPart = disambiguationInput.value.trim();
         if (!cpfPart) return;
@@ -594,15 +890,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (finalMatches.length === 1) {
             const idToMatch = finalMatches[0].id;
-            dayData.transactions.find(t => t.id === idToMatch).status = 'matched';
+            const matchedTransaction = dayData.transactions.find(t => t.id === idToMatch);
+            matchedTransaction.status = 'matched';
+            
             ambiguousMatches.forEach(t => {
                 if (t.id !== idToMatch) {
                     dayData.transactions.find(ot => ot.id === t.id).status = 'unmatched';
                 }
             });
-            showNotificationPopup('Conferido!', 'success');
-            await checkForCompletion(currentDayKey);
+            
+            // Transferir para conferência de caixa IMEDIATAMENTE
+            await transferToCaixa(matchedTransaction, currentDayKey);
+            
+            // Salvar dados imediatamente após transferência
             await saveDataToServer();
+            
+            // Atualizar interface da caixa se estiver na aba ativa
+            if (!sistemaCaixa.classList.contains('hidden')) {
+                updateCaixaDaySelector();
+                renderCaixaTable();
+            }
+            
+            console.log('✅ FLUXO: Valor desambiguado conferido e transferido para caixa!');
+            showNotificationPopup('Conferido e Transferido para Caixa!', 'success');
+            await checkForCompletion(currentDayKey);
             renderTable();
             
             // Limpar opções mostradas
@@ -644,6 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             deactivateControls(true);
         }
+        checkDataPresence();
     });
     
     resetButton.addEventListener('click', () => {
@@ -914,6 +1226,238 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus('Ação desfeita.', 'blue');
         }
     }
+
+    // Funções da Conferência de Caixa
+    function updateCaixaDaySelector() {
+        const pendingDays = Object.keys(appData.caixaData.pending).sort().reverse();
+        const completedDays = Object.keys(appData.caixaData.completed).sort().reverse();
+        
+        caixaDaySelector.innerHTML = '';
+        
+        if (pendingDays.length === 0 && completedDays.length === 0) {
+            caixaDaySelector.innerHTML = '<option>Nenhum dia com valores conferidos</option>';
+            caixaDaySelector.disabled = true;
+            caixaControls.classList.add('hidden');
+            return;
+        }
+        
+        if (pendingDays.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = 'Pendentes';
+            pendingDays.forEach(day => group.appendChild(new Option(day, day)));
+            caixaDaySelector.appendChild(group);
+        }
+        
+        if (completedDays.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = 'Finalizadas';
+            completedDays.forEach(day => group.appendChild(new Option(day, day)));
+            caixaDaySelector.appendChild(group);
+        }
+        
+        caixaDaySelector.disabled = false;
+        caixaControls.classList.remove('hidden');
+    }
+
+    function renderCaixaTable() {
+        const selectedDay = caixaDaySelector.value;
+        const dayData = appData.caixaData.pending[selectedDay] || appData.caixaData.completed[selectedDay];
+        
+        if (!dayData || !dayData.transactions || dayData.transactions.length === 0) {
+            caixaTableContainer.innerHTML = '';
+            caixaInitialMessage.style.display = 'block';
+            caixaStatusText.textContent = 'Nenhum valor transferido ainda para este dia';
+            return;
+        }
+        
+        caixaInitialMessage.style.display = 'none';
+        let total = 0;
+        
+        let contentHTML = dayData.transactions.map(transaction => {
+            total += transaction.valor;
+            const transferTime = new Date(transaction.transferredAt).toLocaleString('pt-BR');
+            
+            return `<tr class="bg-green-50 border-b border-gray-200">
+                        <td class="px-6 py-3 font-medium whitespace-nowrap">${transaction.data}</td>
+                        <td class="px-6 py-3">${transaction.historico}</td>
+                        <td class="px-6 py-3 text-right font-semibold text-green-700">
+                            ${transaction.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </td>
+                        <td class="px-6 py-3 text-xs text-gray-500">${transferTime}</td>
+                    </tr>`;
+        }).join('');
+
+        caixaTableContainer.innerHTML = `
+            <table class="w-full text-sm text-left text-gray-600">
+                <thead class="bg-green-100 text-xs text-gray-700 uppercase tracking-wider">
+                    <tr>
+                        <th class="px-6 py-3">Data</th>
+                        <th class="px-6 py-3">Histórico</th>
+                        <th class="px-6 py-3 text-right">Valor</th>
+                        <th class="px-6 py-3">Transferido em</th>
+                    </tr>
+                </thead>
+                <tbody>${contentHTML}</tbody>
+                <tfoot class="bg-green-200 font-semibold text-gray-800">
+                    <tr class="border-t-2 border-green-300">
+                        <td class="px-6 py-4 text-left text-base">
+                            Valores Conferidos: <strong class="text-green-600">${dayData.transactions.length}</strong>
+                        </td>
+                        <td class="px-6 py-4 text-right text-base" colspan="2">
+                            Total Conferido
+                        </td>
+                        <td class="px-6 py-4 text-right text-base">
+                            <strong class="text-green-600">${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>`;
+        
+        const isCompleted = appData.caixaData.completed[selectedDay];
+        caixaStatusText.textContent = isCompleted 
+            ? `Conferência finalizada - ${dayData.transactions.length} valores processados`
+            : `${dayData.transactions.length} valores aguardando finalização`;
+        
+        finalizarCaixaButton.disabled = isCompleted;
+        finalizarCaixaButton.textContent = isCompleted ? 'Já Finalizada' : 'Finalizar Conferência';
+    }
+
+    // Event listeners da Conferência de Caixa
+    caixaDaySelector.addEventListener('change', renderCaixaTable);
+    
+    finalizarCaixaButton.addEventListener('click', async () => {
+        const selectedDay = caixaDaySelector.value;
+        if (!selectedDay || !appData.caixaData.pending[selectedDay]) return;
+        
+        // Mover de pending para completed
+        appData.caixaData.completed[selectedDay] = appData.caixaData.pending[selectedDay];
+        delete appData.caixaData.pending[selectedDay];
+        
+        await saveDataToServer();
+        updateCaixaDaySelector();
+        caixaDaySelector.value = selectedDay;
+        renderCaixaTable();
+        
+        showStatus('Conferência de caixa finalizada!', 'green');
+    });
+    
+    exportarCaixaButton.addEventListener('click', () => {
+        const selectedDay = caixaDaySelector.value;
+        const dayData = appData.caixaData.pending[selectedDay] || appData.caixaData.completed[selectedDay];
+        
+        if (!dayData) return;
+        
+        const exportData = {
+            dia: selectedDay,
+            totalConferido: dayData.totalConferido,
+            quantidadeItens: dayData.transactions.length,
+            transacoes: dayData.transactions,
+            exportadoEm: new Date().toISOString()
+        };
+        
+        const dataBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `conferencia-caixa-${selectedDay.replace(/\//g, '-')}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        showStatus('Arquivo exportado com sucesso!', 'green');
+    });
+
+    // Funções do Histórico de Valores Não Encontrados
+    function renderHistoricoValores() {
+        const searchTerm = searchValorInput.value.toLowerCase();
+        const filteredValues = appData.valoresNaoEncontrados.filter(item => 
+            item.valor.toString().includes(searchTerm) || 
+            item.dia.toLowerCase().includes(searchTerm)
+        ).sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+        
+        if (filteredValues.length === 0) {
+            historicoContainer.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhum valor encontrado</div>';
+            return;
+        }
+        
+        const contentHTML = filteredValues.map(item => {
+            const dataFormatada = new Date(item.dataHora).toLocaleString('pt-BR');
+            const valorFormatado = typeof item.valor === 'number' 
+                ? item.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                : item.valor;
+            
+            return `<div class="p-3 border-b border-gray-200 hover:bg-gray-50">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-semibold text-red-600">${valorFormatado}</div>
+                                <div class="text-sm text-gray-600">Dia: ${item.dia}</div>
+                                <div class="text-xs text-gray-500">${dataFormatada}</div>
+                            </div>
+                            <div class="text-xs text-orange-600 font-semibold">
+                                ${item.tentativas} tentativa${item.tentativas > 1 ? 's' : ''}
+                            </div>
+                        </div>
+                    </div>`;
+        }).join('');
+        
+        historicoContainer.innerHTML = contentHTML;
+    }
+    
+    // Event listeners do Histórico
+    toggleHistoricoButton.addEventListener('click', () => {
+        const isHidden = historicoValores.classList.contains('hidden');
+        
+        if (isHidden) {
+            historicoValores.classList.remove('hidden');
+            toggleText.textContent = 'Ocultar';
+            toggleIcon.setAttribute('d', 'M5 15l7-7 7 7');
+            renderHistoricoValores();
+        } else {
+            historicoValores.classList.add('hidden');
+            toggleText.textContent = 'Mostrar';
+            toggleIcon.setAttribute('d', 'M19 9l-7 7-7-7');
+        }
+    });
+    
+    searchValorInput.addEventListener('input', renderHistoricoValores);
+    
+    exportHistoricoButton.addEventListener('click', () => {
+        if (appData.valoresNaoEncontrados.length === 0) {
+            showStatus('Nenhum valor para exportar', 'red');
+            return;
+        }
+        
+        const exportData = {
+            valoresNaoEncontrados: appData.valoresNaoEncontrados,
+            totalItens: appData.valoresNaoEncontrados.length,
+            exportadoEm: new Date().toISOString()
+        };
+        
+        const dataBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `valores-nao-encontrados-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        showStatus('Histórico exportado com sucesso!', 'green');
+    });
+    
+    clearHistoricoButton.addEventListener('click', () => {
+        if (appData.valoresNaoEncontrados.length === 0) {
+            showStatus('Histórico já está vazio', 'blue');
+            return;
+        }
+        
+        if (confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.')) {
+            appData.valoresNaoEncontrados = [];
+            saveDataToServer();
+            renderHistoricoValores();
+            showStatus('Histórico limpo com sucesso!', 'green');
+        }
+    });
 
     // Inicializar aplicação
     init();

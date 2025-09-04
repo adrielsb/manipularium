@@ -5,8 +5,14 @@
     "NODE_ENV": "production"
   },
   "functions": {
-    "api/index.js": {
+    "pages/api/index.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
 }

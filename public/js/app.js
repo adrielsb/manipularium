@@ -1,96 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Sistema de Login
-    const loginScreen = document.getElementById('loginScreen');
-    const mainApp = document.getElementById('mainApp');
-    const loginForm = document.getElementById('loginForm');
-    const loginUser = document.getElementById('loginUser');
-    const loginPassword = document.getElementById('loginPassword');
-    const loginError = document.getElementById('loginError');
-    
-    // Verificar se já está logado
-    const isAuthenticated = sessionStorage.getItem('manipularium_auth') === 'true';
-    
-    if (isAuthenticated) {
-        loginScreen.classList.add('hidden');
-        mainApp.classList.remove('hidden');
-    }
-    
-    // Gerenciar submit do formulário de login
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const username = loginUser.value.trim();
-        const password = loginPassword.value.trim();
-        
-        // Validar credenciais: admin / manipularium
-        if (username === 'admin' && password === 'manipularium') {
-            // Login bem-sucedido
-            sessionStorage.setItem('manipularium_auth', 'true');
-            loginError.classList.add('hidden');
-            
-            // Animação de transição
-            loginScreen.style.transition = 'opacity 0.5s ease-out';
-            loginScreen.style.opacity = '0';
-            
-            setTimeout(() => {
-                loginScreen.classList.add('hidden');
-                mainApp.classList.remove('hidden');
-                loginScreen.style.opacity = '1';
-            }, 500);
-        } else {
-            // Login falhou
-            loginError.textContent = 'Usuário ou senha incorretos!';
-            loginError.classList.remove('hidden');
-            
-            // Adicionar animação de erro
-            const loginCard = loginScreen.querySelector('.login-card');
-            loginCard.style.animation = 'shake 0.5s ease-in-out';
-            
-            setTimeout(() => {
-                loginCard.style.animation = '';
-            }, 500);
-            
-            // Limpar campos
-            loginPassword.value = '';
-            loginPassword.focus();
-        }
-    });
-    
-    // Adicionar animação de shake ao CSS dinamically
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
-            10%, 30%, 50%, 70% { transform: translateX(-10px); }
-            90% { transform: translateX(10px); }
-            100% { transform: translateX(0); }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Função de Logout
-    const logoutButton = document.getElementById('logoutButton');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            sessionStorage.removeItem('manipularium_auth');
-            
-            // Animação de transição
-            mainApp.style.transition = 'opacity 0.3s ease-out';
-            mainApp.style.opacity = '0';
-            
-            setTimeout(() => {
-                mainApp.classList.add('hidden');
-                loginScreen.classList.remove('hidden');
-                mainApp.style.opacity = '1';
-                
-                // Limpar campos de login
-                loginUser.value = '';
-                loginPassword.value = '';
-                loginError.classList.add('hidden');
-                loginUser.focus();
-            }, 300);
-        });
-    }
     
     // Navegação
     const navBancaria = document.getElementById('navBancaria');
@@ -766,9 +674,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let optionsHTML = '';
             
             if (cpfOptions.length > 0) {
-                optionsHTML = '<div class="mt-3 p-3 bg-gray-100 rounded-lg text-left"><p class="text-sm font-semibold mb-2">Opções encontradas (clique para selecionar):</p><ul class="text-sm space-y-1">';
+                optionsHTML = '<div class="mt-3 p-3 bg-gray-100 rounded-lg text-left"><p class="text-sm font-semibold mb-2">Clique numa opção para selecionar:</p><ul class="text-sm space-y-1">';
                 matches.forEach(m => {
-                    optionsHTML += `<li class="flex justify-between items-center p-2 hover:bg-blue-50 rounded cursor-pointer transition-colors clickable-option" data-cpf="${m.cpfCnpj}"><span class="text-gray-600">${m.historico.substring(0, 30)}...</span><span class="font-mono font-semibold text-blue-600">${m.cpfCnpj}</span></li>`;
+                    optionsHTML += `<li class="flex justify-between items-center p-2 hover:bg-blue-100 rounded cursor-pointer border border-transparent hover:border-blue-300 transition-all duration-200 clickable-option" data-cpf="${m.cpfCnpj}">
+                        <span class="text-gray-600">${m.historico.substring(0, 30)}...</span>
+                        <span class="font-mono font-semibold text-blue-600">${m.cpfCnpj}</span>
+                    </li>`;
                 });
                 optionsHTML += '</ul></div>';
             }
@@ -786,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsDiv.innerHTML = optionsHTML;
             inputContainer.appendChild(optionsDiv);
             
-            // Adicionar event listeners para as opções clicáveis
+            // Adicionar event listeners para clique nas opções de CPF/CNPJ
             const clickableOptions = optionsDiv.querySelectorAll('.clickable-option');
             clickableOptions.forEach(option => {
                 option.addEventListener('click', () => {

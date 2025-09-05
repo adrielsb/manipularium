@@ -11,9 +11,11 @@ const fileRoutes = require('./routes/fileRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Inicializar banco de dados
-const DataStorage = require('./models/HybridDataStorage');
-DataStorage.initDatabase().catch(console.error);
+// Inicializar banco de dados (apenas em desenvolvimento)
+if (!process.env.VERCEL) {
+  const DataStorage = require('./models/HybridDataStorage');
+  DataStorage.initDatabase().catch(console.error);
+}
 
 // Middlewares de segurança e logging
 app.use(helmet({

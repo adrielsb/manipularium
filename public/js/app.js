@@ -22,8 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = loginUser.value.trim();
         const password = loginPassword.value.trim();
         
+        console.log('Login tentado com:', { username, password });
+        
         // Validar credenciais: admin / manipularium
         if (username === 'admin' && password === 'manipularium') {
+            console.log('Login válido!');
             // Login bem-sucedido
             sessionStorage.setItem('manipularium_auth', 'true');
             loginError.classList.add('hidden');
@@ -39,7 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         } else {
             // Login falhou
-            loginError.textContent = 'Usuário ou senha incorretos!';
+            console.log('Login falhou. Esperado: admin/manipularium');
+            loginError.textContent = `Usuário ou senha incorretos! (Digitado: ${username}/${password})`;
             loginError.classList.remove('hidden');
             
             // Adicionar animação de erro
@@ -55,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
             loginPassword.focus();
         }
     });
+    
+    // Função de bypass temporário (remover em produção)
+    window.bypassLogin = function() {
+        console.log('Bypass de login ativado');
+        sessionStorage.setItem('manipularium_auth', 'true');
+        loginScreen.classList.add('hidden');
+        mainApp.classList.remove('hidden');
+    };
     
     // Adicionar animação de shake ao CSS dinamically
     const style = document.createElement('style');

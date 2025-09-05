@@ -15,18 +15,27 @@ class FileController {
         });
       }
 
-      const filePath = req.file.path;
-      console.log('📁 Arquivo salvo em:', filePath);
+      // Em produção (Vercel) usar buffer, em desenvolvimento usar filePath
+      const isProduction = process.env.VERCEL;
+      const fileData = isProduction ? req.file.buffer : req.file.path;
+      
+      if (isProduction) {
+        console.log('📁 Arquivo em memória, tamanho:', req.file.buffer.length);
+      } else {
+        console.log('📁 Arquivo salvo em:', fileData);
+      }
       
       try {
-        const transactions = await this.processExcelFile(filePath);
+        const transactions = await this.processExcelFile(fileData, isProduction);
         console.log(`✅ ${transactions.length} transações processadas`);
         
-        // Remover arquivo temporário
-        try {
-          await fs.unlink(filePath);
-        } catch (unlinkError) {
-          console.error('⚠️ Erro ao remover arquivo temporário:', unlinkError.message);
+        // Remover arquivo temporário apenas em desenvolvimento
+        if (!isProduction) {
+          try {
+            await fs.unlink(fileData);
+          } catch (unlinkError) {
+            console.error('⚠️ Erro ao remover arquivo temporário:', unlinkError.message);
+          }
         }
         
         res.json({
@@ -42,11 +51,13 @@ class FileController {
         console.error('❌ Erro no processamento:', processError.message);
         console.error(processError.stack);
         
-        // Tentar remover arquivo em caso de erro
-        try {
-          await fs.unlink(filePath);
-        } catch (unlinkError) {
-          console.error('⚠️ Erro ao remover arquivo após falha:', unlinkError.message);
+        // Tentar remover arquivo em caso de erro (apenas em desenvolvimento)
+        if (!isProduction) {
+          try {
+            await fs.unlink(fileData);
+          } catch (unlinkError) {
+            console.error('⚠️ Erro ao remover arquivo após falha:', unlinkError.message);
+          }
         }
         
         throw processError;
@@ -64,9 +75,11 @@ class FileController {
     }
   }
 
-  async processExcelFile(filePath) {
+  async processExcelFile(fileData, isProduction = false) {
     try {
-      const workbook = XLSX.readFile(filePath, { cellDates: true });
+      const workbook = isProduction ? 
+        XLSX.read(fileData, { type: 'buffer', cellDates: true }) :
+        XLSX.readFile(fileData, { cellDates: true });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const dataRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });

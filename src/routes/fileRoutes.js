@@ -5,15 +5,18 @@ const router = express.Router();
 const fileController = require('../controllers/fileController');
 
 // Configuração do multer para upload de arquivos
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../public/uploads/'));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'upload-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Usar memoryStorage em produção (Vercel) e diskStorage em desenvolvimento
+const storage = process.env.VERCEL ? 
+  multer.memoryStorage() :
+  multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join(__dirname, '../../public/uploads/'));
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'upload-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = [

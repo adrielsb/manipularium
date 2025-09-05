@@ -766,9 +766,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let optionsHTML = '';
             
             if (cpfOptions.length > 0) {
-                optionsHTML = '<div class="mt-3 p-3 bg-gray-100 rounded-lg text-left"><p class="text-sm font-semibold mb-2">Opções encontradas:</p><ul class="text-sm space-y-1">';
+                optionsHTML = '<div class="mt-3 p-3 bg-gray-100 rounded-lg text-left"><p class="text-sm font-semibold mb-2">Clique numa opção para selecionar:</p><ul class="text-sm space-y-1">';
                 matches.forEach(m => {
-                    optionsHTML += `<li class="flex justify-between"><span class="text-gray-600">${m.historico.substring(0, 30)}...</span><span class="font-mono font-semibold">${m.cpfCnpj}</span></li>`;
+                    optionsHTML += `<li class="flex justify-between p-2 hover:bg-blue-100 rounded cursor-pointer border border-transparent hover:border-blue-300 transition-all duration-200 cpf-option" data-cpf="${m.cpfCnpj}">
+                        <span class="text-gray-600">${m.historico.substring(0, 30)}...</span>
+                        <span class="font-mono font-semibold text-blue-600">${m.cpfCnpj}</span>
+                    </li>`;
                 });
                 optionsHTML += '</ul></div>';
             }
@@ -785,6 +788,19 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsDiv.className = 'options-list';
             optionsDiv.innerHTML = optionsHTML;
             inputContainer.appendChild(optionsDiv);
+            
+            // Adicionar event listeners para clique nas opções de CPF/CNPJ
+            const cpfOptions = optionsDiv.querySelectorAll('.cpf-option');
+            cpfOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const cpfValue = option.getAttribute('data-cpf');
+                    disambiguationInput.value = cpfValue;
+                    // Simular confirmação automática após clique
+                    setTimeout(() => {
+                        confirmDisambiguationBtn.click();
+                    }, 100);
+                });
+            });
             
             disambiguationModal.classList.remove('hidden');
             disambiguationInput.value = '';

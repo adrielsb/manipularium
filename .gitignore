@@ -50,6 +50,7 @@ package-lock.json
 # Cache
 .cache/
 tmp/
+.claude/
 
 # Playwright
 /test-results/

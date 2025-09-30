@@ -1435,10 +1435,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (confirmResult) {
             console.log('🗑️ Limpando histórico de valores não encontrados...', appData.valoresNaoEncontrados.length, 'itens');
+
+            // Limpar histórico global
             appData.valoresNaoEncontrados = [];
+
+            // Limpar valores não encontrados de todos os dias (pending e completed)
+            Object.keys(appData.historyData.pending).forEach(dayKey => {
+                if (appData.historyData.pending[dayKey].notFound) {
+                    console.log(`  🗑️ Limpando ${appData.historyData.pending[dayKey].notFound.length} valores não encontrados do dia ${dayKey}`);
+                    appData.historyData.pending[dayKey].notFound = [];
+                }
+            });
+
+            Object.keys(appData.historyData.completed).forEach(dayKey => {
+                if (appData.historyData.completed[dayKey].notFound) {
+                    console.log(`  🗑️ Limpando ${appData.historyData.completed[dayKey].notFound.length} valores não encontrados do dia ${dayKey}`);
+                    appData.historyData.completed[dayKey].notFound = [];
+                }
+            });
+
             await saveDataToServer();
             console.log('✅ Histórico limpo! Array agora tem:', appData.valoresNaoEncontrados.length, 'itens');
+
+            // Re-renderizar a UI
             renderHistoricoValores();
+            renderNotFoundList(); // Atualizar lista de valores não encontrados do dia atual
+
             showStatus('Histórico limpo com sucesso!', 'green');
         } else {
             console.log('❌ [DEBUG] Usuário cancelou a limpeza');

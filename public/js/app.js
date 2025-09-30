@@ -1424,8 +1424,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         console.log('❓ [DEBUG] Abrindo confirm dialog...');
-        const confirmResult = confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.');
-        console.log('✓ [DEBUG] Confirm result:', confirmResult);
+        let confirmResult;
+        try {
+            confirmResult = confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.');
+            console.log('✓ [DEBUG] Confirm result:', confirmResult);
+        } catch (error) {
+            console.error('❌ [DEBUG] Erro no confirm:', error);
+            confirmResult = false;
+        }
 
         if (confirmResult) {
             console.log('🗑️ Limpando histórico de valores não encontrados...', appData.valoresNaoEncontrados.length, 'itens');
@@ -1436,6 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus('Histórico limpo com sucesso!', 'green');
         } else {
             console.log('❌ [DEBUG] Usuário cancelou a limpeza');
+            showStatus('Limpeza cancelada', 'blue');
         }
     });
 

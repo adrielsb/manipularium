@@ -1415,18 +1415,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     clearHistoricoButton.addEventListener('click', async () => {
+        console.log('🖱️ [DEBUG] Botão limpar clicado! Itens atuais:', appData.valoresNaoEncontrados.length);
+
         if (appData.valoresNaoEncontrados.length === 0) {
+            console.log('⚠️ [DEBUG] Histórico já está vazio');
             showStatus('Histórico já está vazio', 'blue');
             return;
         }
 
-        if (confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.')) {
+        console.log('❓ [DEBUG] Abrindo confirm dialog...');
+        const confirmResult = confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.');
+        console.log('✓ [DEBUG] Confirm result:', confirmResult);
+
+        if (confirmResult) {
             console.log('🗑️ Limpando histórico de valores não encontrados...', appData.valoresNaoEncontrados.length, 'itens');
             appData.valoresNaoEncontrados = [];
             await saveDataToServer();
             console.log('✅ Histórico limpo! Array agora tem:', appData.valoresNaoEncontrados.length, 'itens');
             renderHistoricoValores();
             showStatus('Histórico limpo com sucesso!', 'green');
+        } else {
+            console.log('❌ [DEBUG] Usuário cancelou a limpeza');
         }
     });
 

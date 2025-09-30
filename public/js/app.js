@@ -1322,15 +1322,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Funções do Histórico de Valores Não Encontrados
     function renderHistoricoValores() {
         const searchTerm = searchValorInput.value.toLowerCase();
-        const filteredValues = appData.valoresNaoEncontrados.filter(item => 
-            item.valor.toString().includes(searchTerm) || 
-            item.dia.toLowerCase().includes(searchTerm)
-        ).sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
-        
-        if (filteredValues.length === 0) {
-            historicoContainer.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhum valor encontrado</div>';
+
+        // Se não há dados, mostrar mensagem apropriada
+        if (appData.valoresNaoEncontrados.length === 0) {
+            historicoContainer.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhum valor não encontrado registrado</div>';
+            noHistoricoMessage.classList.remove('hidden');
+            historicoContainer.classList.add('hidden');
             return;
         }
+
+        // Filtrar valores
+        const filteredValues = appData.valoresNaoEncontrados.filter(item =>
+            item.valor.toString().includes(searchTerm) ||
+            item.dia.toLowerCase().includes(searchTerm)
+        ).sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+
+        // Se a busca não encontrou resultados
+        if (filteredValues.length === 0) {
+            historicoContainer.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhum valor encontrado para a busca</div>';
+            noHistoricoMessage.classList.add('hidden');
+            historicoContainer.classList.remove('hidden');
+            return;
+        }
+
+        // Mostrar container e ocultar mensagem de vazio
+        noHistoricoMessage.classList.add('hidden');
+        historicoContainer.classList.remove('hidden');
         
         const contentHTML = filteredValues.map(item => {
             const dataFormatada = new Date(item.dataHora).toLocaleString('pt-BR');
@@ -1397,15 +1414,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('Histórico exportado com sucesso!', 'green');
     });
     
-    clearHistoricoButton.addEventListener('click', () => {
+    clearHistoricoButton.addEventListener('click', async () => {
         if (appData.valoresNaoEncontrados.length === 0) {
             showStatus('Histórico já está vazio', 'blue');
             return;
         }
-        
+
         if (confirm('Tem certeza que deseja limpar todo o histórico de valores não encontrados? Esta ação não pode ser desfeita.')) {
+            console.log('🗑️ Limpando histórico de valores não encontrados...', appData.valoresNaoEncontrados.length, 'itens');
             appData.valoresNaoEncontrados = [];
-            saveDataToServer();
+            await saveDataToServer();
+            console.log('✅ Histórico limpo! Array agora tem:', appData.valoresNaoEncontrados.length, 'itens');
             renderHistoricoValores();
             showStatus('Histórico limpo com sucesso!', 'green');
         }

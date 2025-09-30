@@ -144,6 +144,23 @@ document.addEventListener('DOMContentLoaded', () => {
     async function init() {
         await loadDataFromServer();
         updateDaySelector();
+
+        // Selecionar automaticamente o dia mais recente se houver dados
+        const allDays = [...Object.keys(appData.historyData.pending), ...Object.keys(appData.historyData.completed)]
+            .sort().reverse();
+
+        if (allDays.length > 0) {
+            currentDayKey = allDays[0];
+            daySelector.value = currentDayKey;
+            renderTable();
+
+            if (appData.historyData.pending[currentDayKey]) {
+                activateControls();
+            } else {
+                deactivateControls(true);
+            }
+        }
+
         checkDataPresence();
     }
 

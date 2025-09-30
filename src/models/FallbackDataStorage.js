@@ -18,6 +18,8 @@ class FallbackDataStorage {
       } catch {
         await this.saveData({
           historyData: { pending: {}, completed: {} },
+          caixaData: { pending: {}, completed: {} },
+          valoresNaoEncontrados: [],
           backups: []
         });
       }
@@ -29,11 +31,21 @@ class FallbackDataStorage {
   async loadData() {
     try {
       const data = await fs.readFile(this.dataFile, 'utf8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+
+      // Garantir compatibilidade com dados antigos
+      return {
+        historyData: parsed.historyData || { pending: {}, completed: {} },
+        caixaData: parsed.caixaData || { pending: {}, completed: {} },
+        valoresNaoEncontrados: parsed.valoresNaoEncontrados || [],
+        backups: parsed.backups || []
+      };
     } catch (error) {
       console.error('Erro ao carregar dados locais:', error);
       return {
         historyData: { pending: {}, completed: {} },
+        caixaData: { pending: {}, completed: {} },
+        valoresNaoEncontrados: [],
         backups: []
       };
     }
@@ -77,6 +89,8 @@ class FallbackDataStorage {
     try {
       const emptyData = {
         historyData: { pending: {}, completed: {} },
+        caixaData: { pending: {}, completed: {} },
+        valoresNaoEncontrados: [],
         backups: []
       };
       await this.saveData(emptyData);

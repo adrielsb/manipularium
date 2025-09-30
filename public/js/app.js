@@ -169,8 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/data');
             const result = await response.json();
-            
+
             if (result.success) {
+                console.log('📥 Dados carregados do servidor:', {
+                    historyDays: Object.keys(result.data.historyData.pending || {}).concat(Object.keys(result.data.historyData.completed || {})),
+                    caixaDays: Object.keys(result.data.caixaData?.pending || {}).concat(Object.keys(result.data.caixaData?.completed || {})),
+                    valoresNaoEncontrados: result.data.valoresNaoEncontrados?.length || 0
+                });
+
                 appData = result.data;
                 // Garantir que estruturas existem (compatibilidade com dados antigos)
                 if (!appData.caixaData) {
@@ -187,6 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveDataToServer() {
         try {
+            console.log('💾 Salvando dados no servidor...', {
+                historyDays: Object.keys(appData.historyData.pending).concat(Object.keys(appData.historyData.completed)),
+                caixaDays: Object.keys(appData.caixaData.pending).concat(Object.keys(appData.caixaData.completed)),
+                valoresNaoEncontrados: appData.valoresNaoEncontrados.length
+            });
+
             const response = await fetch('/api/data', {
                 method: 'POST',
                 headers: {
@@ -194,19 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify(appData)
             });
-            
+
             const result = await response.json();
-            
+
             if (!result.success) {
-                console.error('Erro ao salvar dados:', result.message);
+                console.error('❌ Erro ao salvar dados:', result.message);
                 showStatus('Erro ao salvar dados', 'red');
+            } else {
+                console.log('✅ Dados salvos com sucesso!');
             }
-            
+
         } catch (error) {
-            console.error('Erro ao salvar dados:', error);
+            console.error('❌ Erro ao salvar dados:', error);
             showStatus('Erro de conexão', 'red');
         }
-        
+
         checkDataPresence();
     }
 

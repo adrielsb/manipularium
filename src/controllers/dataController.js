@@ -20,8 +20,8 @@ class DataController {
 
   async saveData(req, res) {
     try {
-      const { historyData, backups } = req.body;
-      
+      const { historyData, backups, caixaData, valoresNaoEncontrados } = req.body;
+
       if (!historyData || typeof historyData !== 'object') {
         return res.status(400).json({
           success: false,
@@ -31,7 +31,9 @@ class DataController {
 
       const dataToSave = {
         historyData: historyData,
-        backups: backups || []
+        backups: backups || [],
+        caixaData: caixaData || { pending: {}, completed: {} },
+        valoresNaoEncontrados: valoresNaoEncontrados || []
       };
 
       const success = await DataStorage.saveData(dataToSave);

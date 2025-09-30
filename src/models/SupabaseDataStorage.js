@@ -173,12 +173,18 @@ class SupabaseDataStorage {
 
   async saveData(data) {
     try {
+      console.log('💾 [Supabase] Iniciando saveData...');
+      console.log('  - Dias history:', Object.keys(data.historyData.pending).concat(Object.keys(data.historyData.completed)));
+      console.log('  - Dias caixa:', data.caixaData ? Object.keys(data.caixaData.pending).concat(Object.keys(data.caixaData.completed)) : 'N/A');
+
       // Limpar dados existentes (começar do zero a cada save completo)
+      console.log('  - Limpando dados antigos...');
       await this.clearAllData(false);
 
       // Salvar dias de conferência e suas transações
       for (const [status, days] of Object.entries(data.historyData)) {
         for (const [dayKey, dayData] of Object.entries(days)) {
+          console.log(`  - Salvando dia ${dayKey} (${status}): ${dayData.transactions.length} transações`);
 
           // Inserir dia
           await supabase
@@ -276,9 +282,10 @@ class SupabaseDataStorage {
         if (valoresError) throw valoresError;
       }
 
+      console.log('✅ [Supabase] Todos os dados salvos com sucesso!');
       return true;
     } catch (error) {
-      console.error('Erro ao salvar dados:', error);
+      console.error('❌ [Supabase] Erro ao salvar dados:', error);
       return false;
     }
   }

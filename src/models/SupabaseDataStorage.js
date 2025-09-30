@@ -88,8 +88,71 @@ class SupabaseDataStorage {
         }
       });
 
+      // Carregar dados de caixa
+      const { data: caixaDays, error: caixaError } = await supabase
+        .from('caixa_days')
+        .select('*');
+
+      const caixaData = { pending: {}, completed: {} };
+
+      if (!caixaError && caixaDays) {
+        const { data: caixaTransactions, error: caixaTransError } = await supabase
+          .from('caixa_transactions')
+          .select('*')
+          .order('original_id');
+
+        if (!caixaTransError && caixaTransactions) {
+          const caixaDayGroups = {};
+
+          caixaTransactions.forEach(transaction => {
+            if (!caixaDayGroups[transaction.day_key]) {
+              caixaDayGroups[transaction.day_key] = {
+                transactions: [],
+                totalConferido: 0
+              };
+            }
+
+            caixaDayGroups[transaction.day_key].transactions.push({
+              id: transaction.original_id,
+              data: transaction.date_value,
+              historico: transaction.historico,
+              cpfCnpj: transaction.cpf_cnpj,
+              valor: parseFloat(transaction.valor),
+              status: transaction.status,
+              transferredAt: transaction.transferred_at,
+              originalStatus: transaction.original_status
+            });
+
+            caixaDayGroups[transaction.day_key].totalConferido += parseFloat(transaction.valor);
+          });
+
+          caixaDays.forEach(day => {
+            if (caixaDayGroups[day.day_key]) {
+              caixaData[day.status][day.day_key] = caixaDayGroups[day.day_key];
+            }
+          });
+        }
+      }
+
+      // Carregar valores não encontrados globais
+      const { data: valoresGlobais, error: valoresError } = await supabase
+        .from('valores_nao_encontrados_global')
+        .select('*')
+        .order('data_hora', { ascending: false });
+
+      const valoresNaoEncontrados = !valoresError && valoresGlobais
+        ? valoresGlobais.map(v => ({
+            valor: parseFloat(v.valor),
+            dia: v.dia,
+            dataHora: v.data_hora,
+            tentativas: v.tentativas
+          }))
+        : [];
+
       return {
         historyData,
+        caixaData,
+        valoresNaoEncontrados,
         backups: backups.map(backup => ({
           timestamp: backup.timestamp,
           data: backup.data,
@@ -101,6 +164,8 @@ class SupabaseDataStorage {
       console.error('Erro ao carregar dados:', error);
       return {
         historyData: { pending: {}, completed: {} },
+        caixaData: { pending: {}, completed: {} },
+        valoresNaoEncontrados: [],
         backups: []
       };
     }
@@ -114,7 +179,7 @@ class SupabaseDataStorage {
       // Salvar dias de conferência e suas transações
       for (const [status, days] of Object.entries(data.historyData)) {
         for (const [dayKey, dayData] of Object.entries(days)) {
-          
+
           // Inserir dia
           await supabase
             .from('conference_days')
@@ -156,6 +221,59 @@ class SupabaseDataStorage {
             if (nfError) throw nfError;
           }
         }
+      }
+
+      // Salvar dados de caixa
+      if (data.caixaData) {
+        for (const [status, days] of Object.entries(data.caixaData)) {
+          for (const [dayKey, dayData] of Object.entries(days)) {
+
+            // Inserir dia de caixa
+            await supabase
+              .from('caixa_days')
+              .upsert({
+                day_key: dayKey,
+                status: status
+              });
+
+            // Inserir transações de caixa
+            if (dayData.transactions && dayData.transactions.length > 0) {
+              const caixaTransactionsToInsert = dayData.transactions.map(t => ({
+                day_key: dayKey,
+                original_id: t.id,
+                date_value: t.data,
+                historico: t.historico,
+                cpf_cnpj: t.cpfCnpj,
+                valor: t.valor,
+                status: t.status,
+                transferred_at: t.transferredAt,
+                original_status: t.originalStatus
+              }));
+
+              const { error: caixaTransError } = await supabase
+                .from('caixa_transactions')
+                .insert(caixaTransactionsToInsert);
+
+              if (caixaTransError) throw caixaTransError;
+            }
+          }
+        }
+      }
+
+      // Salvar valores não encontrados globais
+      if (data.valoresNaoEncontrados && data.valoresNaoEncontrados.length > 0) {
+        const valoresGlobaisToInsert = data.valoresNaoEncontrados.map(v => ({
+          valor: v.valor,
+          dia: v.dia,
+          data_hora: v.dataHora,
+          tentativas: v.tentativas
+        }));
+
+        const { error: valoresError } = await supabase
+          .from('valores_nao_encontrados_global')
+          .insert(valoresGlobaisToInsert);
+
+        if (valoresError) throw valoresError;
       }
 
       return true;
@@ -215,7 +333,10 @@ class SupabaseDataStorage {
       await supabase.from('not_found_values').delete().neq('id', 0);
       await supabase.from('transactions').delete().neq('id', 0);
       await supabase.from('conference_days').delete().neq('day_key', '');
-      
+      await supabase.from('caixa_transactions').delete().neq('id', 0);
+      await supabase.from('caixa_days').delete().neq('day_key', '');
+      await supabase.from('valores_nao_encontrados_global').delete().neq('id', 0);
+
       if (clearBackups) {
         await supabase.from('backups').delete().neq('id', 0);
       }
